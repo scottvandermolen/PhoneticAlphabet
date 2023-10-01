@@ -45,7 +45,7 @@ $revealedMessage = Phonetic\decodeMessage($secretMessage);
 
 ### ASP Classic
 
-```ASP
+```vbscript
 dim Phonetic
 
 ' Option 1: component not registered
