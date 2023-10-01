@@ -1,0 +1,211 @@
+<?xml version="1.0"?>
+<component>
+
+<?component error="true" debug="true"?>
+
+<registration
+	description="ASP Phonetic Alphabet Library"
+	progid="ScottVM.Phonetic"
+	version="1.00"
+	classid="{a883acf8-8834-47ec-b811-5da803ae2645}"
+>
+</registration>
+
+<public>
+	<method name="encodeMessage">
+		<PARAMETER name="message"/>
+	</method>
+	<method name="decodeMessage">
+		<PARAMETER name="message"/>
+	</method>
+</public>
+
+<implements type="ASP" id="ASP"/>
+
+<script language="VBScript">
+<![CDATA[
+		' ASP Phonetic Alphabet Library
+		' 
+		' Copyright (c) 2023, Scott Vander Molen; some rights reserved.
+		' 
+		' This work is licensed under a Creative Commons Attribution 4.0 International License.
+		' To view a copy of this license, visit https://creativecommons.org/licenses/by/4.0/
+		' 
+		' @author  Scott Vander Molen
+		' @version 2.0
+		' @since   2023-10-01
+		
+		Response.CodePage = 65001 
+		Response.CharSet = "UTF-8"
+		
+		const errorProsign = "········"
+		
+		dim phonetic
+		set phonetic = Server.CreateObject("Scripting.Dictionary")
+		
+		with phonetic
+			.Add " ", "|"
+			.Add "A", "alfa"
+			.Add "B", "bravo"
+			.Add "C", "charlie"
+			.Add "D", "delta"
+			.Add "E", "echo"
+			.Add "F", "foxtrot"
+			.Add "G", "golf"
+			.Add "H", "hotel"
+			.Add "I", "india"
+			.Add "J", "juliett"
+			.Add "K", "kilo"
+			.Add "L", "lima"
+			.Add "M", "mike"
+			.Add "N", "november"
+			.Add "O", "oscar"
+			.Add "P", "papa"
+			.Add "Q", "quebec"
+			.Add "R", "romeo"
+			.Add "S", "sierra"
+			.Add "T", "tango"
+			.Add "U", "uniform"
+			.Add "V", "victory"
+			.Add "W", "whiskey"
+			.Add "X", "xray"
+			.Add "Y", "yankee"
+			.Add "Z", "zulu"
+			.Add "0", "zero"
+			.Add "1", "one"
+			.Add "2", "two"
+			.Add "3", "tree"
+			.Add "4", "fower"
+			.Add "5", "fife"
+			.Add "6", "six"
+			.Add "7", "seven"
+			.Add "8", "eight"
+			.Add "9", "niner"
+			.Add ".", "stop"
+			.Add ",", "comma"
+			.Add "?", "question-mark"
+			.Add "'", "apostrophe"
+			.Add "!", "exclamation-mark"
+			.Add "/", "slant"
+			.Add "(", "brackets-on"
+			.Add ")", "brackets-off"
+			.Add "&", "ampersand"
+			.Add ":", "colon"
+			.Add ";", "semi-colon"
+			.Add "–", "hyphen"
+			.Add "_", "underscore"
+			.Add "“", "quote"
+			.Add "”", "unquote"
+		end with
+
+		' Since ASP doesn't support checking if a value exists, the fastest solution is to create a second dictionary with the keys and values reversed.
+		dim reversePhonetic
+		set reversePhonetic = Server.CreateObject("Scripting.Dictionary")
+
+		with reversePhonetic
+			.Add "|", " "
+			.Add "alfa", "A"
+			.Add "bravo", "B"
+			.Add "charlie", "C"
+			.Add "delta", "D"
+			.Add "echo", "E"
+			.Add "foxtrot", "F"
+			.Add "golf", "G"
+			.Add "hotel", "H"
+			.Add "india", "I"
+			.Add "juliett", "J"
+			.Add "kilo", "K"
+			.Add "lima", "L"
+			.Add "mike", "M"
+			.Add "november", "N"
+			.Add "oscar", "O"
+			.Add "papa", "P"
+			.Add "quebec", "Q"
+			.Add "romeo", "R"
+			.Add "sierra", "S"
+			.Add "tango", "T"
+			.Add "uniform", "U"
+			.Add "victor", "V"
+			.Add "whiskey", "W"
+			.Add "xray", "X"
+			.Add "yankee", "Y"
+			.Add "zulu", "Z"
+			.Add "zero", "0"
+			.Add "one", "1"
+			.Add "two", "2"
+			.Add "tree", "3"
+			.Add "fower", "4"
+			.Add "fife", "5"
+			.Add "six", "6"
+			.Add "seven", "7"
+			.Add "eight", "8"
+			.Add "niner", "9"
+			.Add "stop", "."
+			.Add "comma", ","
+			.Add "question-mark", "?"
+			.Add "apostrophe", "'"
+			.Add "exclamation-mark", "!"
+			.Add "slant", "/"
+			.Add "brackets-on", "("
+			.Add "brackets-off", ")"
+			.Add "ampersand", "&"
+			.Add "colon", ":"
+			.Add "semi-colon", ";"
+			.Add "hyphen", "–"
+			.Add "underscore", "_"
+			.Add "quote", "“"
+			.Add "unquote", "”"
+		end with
+
+		' Encodes a plain text message into phonetic alphabet.
+		' 
+		' @param message The plain text message to encode.
+		' @return string The encoded message. Words are separated by pipes.
+		function encodeMessage(message)
+			dim result
+			result = ""
+			
+			dim charCounter
+			dim character
+			
+			' Loop through the message one character at a time.
+			for charCounter = 1 to len(message)
+				character = ucase(mid(message, charCounter, 1))
+				
+				' Check if the character exists in the dictionary.
+				if phonetic.exists(character) then
+					' The character exists, so return the equivalent phonetic word.
+					result = result & phonetic.item(character) & " "
+				end if
+			next
+			
+			encodeMessage = trim(result)
+		end function
+
+		' Decodes a phonetic alphabet-encoded message into plain text.
+		' 
+		' @param message The encoded message to decode.
+		' @return string The decoded plain text message.
+		function decodeMessage(message)
+			dim result
+			result = ""
+			
+			' Split the message into separate characters.
+			dim code
+			dim codes
+			codes = split(message, " ")
+			
+			' Loop through the message one character at a time.
+			for each code in codes
+				if reversePhonetic.exists(code) then
+					' The code exists, so return the equivalent character.
+					result = result & reversePhonetic.Item(code)
+				end if
+			next
+			
+			decodeMessage = trim(lcase(result))
+		end function
+]]>
+</script>
+
+</component>
